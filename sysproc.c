@@ -106,3 +106,26 @@ sys_sleep(void)
   return 0;
 }
 
+int
+sys_cond_sleep(void)
+{
+  void *chan;
+  struct spinlock lock;
+  argptr(0, &chan, 4);
+  cprintf("sp ch %x\n", chan);
+  initlock(&lock, "temp");
+  acquire(&lock);
+  sleep(chan, &lock);
+  release(&lock);
+  return 0;
+}
+
+int
+sys_cond_wake(void)
+{
+  void *chan;
+  argptr(0, &chan, 4);
+  cprintf("wk ch %x\n", chan);
+  wakeup(chan);
+  return 0;
+}
