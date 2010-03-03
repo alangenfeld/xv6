@@ -118,7 +118,6 @@ sys_cond_sleep(void)
 {
   void *chan;
   argptr(0, &chan, 4);
-  cprintf("sp ch %x\n", chan);
   sleep_cond(chan);
   return 0;
 }
@@ -128,7 +127,6 @@ sys_cond_wake(void)
 {
   void *chan;
   argptr(0, &chan, 4);
-  cprintf("wk ch %x\n", chan);
   wake_cond(chan);
   return 0;
 }
