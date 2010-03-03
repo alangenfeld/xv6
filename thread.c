@@ -34,7 +34,8 @@ void cond_wait(cond_t *c, mutex_t *m)
 
 void cond_signal(cond_t *c)
 {
-  cond_wake(&(c->chan) + c->chan++);
+  if(c->chan < c->cnt)
+    cond_wake(&(c->chan) + c->chan++);
 }
 
 int thread_create( void *(*start_routine)(void*), void *arg)

@@ -12,10 +12,12 @@ void*
 con(void *w)
 {
   struct work *p = w;
-  printf(1, "start con\n");
+  //  printf(1, "start con\n");
   mutex_lock(&(p->lk));
-  printf(1, "sleep con\n");
+  //  printf(1, "sleep con\n");
   cond_wait(&(p->c), &(p->lk));
+  mutex_unlock(&(p->lk));
+  printf(1, "exit con\n");
   exit();
 }
 
@@ -23,11 +25,12 @@ void*
 prod(void *w)
 {
   struct work *p = w;
-  printf(1, "start prod\n");
+  //  printf(1, "start prod\n");
   int t0 = tim();
   while((tim() - t0) < 1000);
-  printf(1, "prod wake\n");
+  //  printf(1, "prod wake\n");
   cond_signal(&(p->c));
+  printf(1, "exit pro\n");
   exit();
 }
 
@@ -38,8 +41,23 @@ main(int argc, char*argv[])
   pkt.x = 0;
   mutex_init(&(pkt.lk));
   cond_init(&(pkt.c));
+
   thread_create(&con, &pkt);
+  thread_create(&con, &pkt);
+  thread_create(&con, &pkt);
+  thread_create(&con, &pkt);
+  thread_create(&con, &pkt);
+  thread_create(&con, &pkt);
+  thread_create(&con, &pkt);
+
   thread_create(&prod, &pkt);
+  thread_create(&prod, &pkt);
+  thread_create(&prod, &pkt);
+  thread_create(&prod, &pkt);
+  thread_create(&prod, &pkt);
+  thread_create(&prod, &pkt);
+  thread_create(&prod, &pkt);
+
   thread_wait();
   exit();
 }
