@@ -21,3 +21,6 @@
 #define SYS_sleep  20
 #define SYS_thread 21
 #define SYS_thread_wait 22
+#define SYS_cond_wake   23
+#define SYS_cond_sleep  24
+#define SYS_tim    25

@@ -3,6 +3,14 @@
 #include "param.h"
 #include "mmu.h"
 #include "proc.h"
+#include "thread.h"
+#include "spinlock.h"
+
+int
+sys_tim(void)
+{
+  return ticks;
+}
 
 int
 sys_thread(void)

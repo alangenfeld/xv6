@@ -33,6 +33,7 @@ main(int argc, char* argv[])
   int a, b, c;
   mutex_init(&lock);
   printf(1, "r: %x a: %x\n", &(WTF), &a);
+  printf(1, "WTF: %x, &WTF: %x\n", WTF, &WTF);
   a = thread_create(&WTF, &a);
   thread_wait();
   b = thread_create(WTF, &b);
