@@ -22,18 +22,19 @@ void mutex_unlock(mutex_t *m)
 void cond_init(cond_t *c)
 {
   c->chan = 0;
+  c->cnt = 0;
 }
 
 void cond_wait(cond_t *c, mutex_t *m)
 {
   mutex_unlock(m);
-  cond_sleep(&(c->chan));
+  cond_sleep(&(c->chan) + c->cnt++);
   mutex_lock(m);
 }
 
 void cond_signal(cond_t *c)
 {
-  cond_wake(&(c->chan));
+  cond_wake(&(c->chan) + c->chan++);
 }
 
 int thread_create( void *(*start_routine)(void*), void *arg)

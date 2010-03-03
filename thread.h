@@ -6,6 +6,7 @@ typedef struct mutex{
 
 typedef struct cond{
   uint chan;
+  uint cnt;
 } cond_t;
 
 void mutex_init(mutex_t *m);

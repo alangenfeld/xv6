@@ -4,7 +4,6 @@
 #include "mmu.h"
 #include "proc.h"
 #include "thread.h"
-#include "spinlock.h"
 
 int
 sys_tim(void)
@@ -118,13 +117,9 @@ int
 sys_cond_sleep(void)
 {
   void *chan;
-  struct spinlock lock;
   argptr(0, &chan, 4);
   cprintf("sp ch %x\n", chan);
-  initlock(&lock, "temp");
-  acquire(&lock);
-  sleep(chan, &lock);
-  release(&lock);
+  sleep_cond(chan);
   return 0;
 }
 
@@ -134,6 +129,6 @@ sys_cond_wake(void)
   void *chan;
   argptr(0, &chan, 4);
   cprintf("wk ch %x\n", chan);
-  wakeup(chan);
+  wake_cond(chan);
   return 0;
 }

@@ -365,6 +365,42 @@ sleep(void *chan, struct spinlock *lk)
   }
 }
 
+// Wait on a condition variable
+int
+sleep_cond(void *chan)
+{
+  acquire(&proc_table_lock);
+
+  // Go to sleep.
+  cp->chan = chan;
+  cp->state = SLEEPING;
+  sched();
+
+  // Tidy up.
+  cp->chan = 0;  
+
+  release(&proc_table_lock);
+  return 0;
+}
+
+// Wake up one process waiting on cond
+int
+wake_cond(void *chan)
+{
+  struct proc *p;
+  
+  acquire(&proc_table_lock);
+  
+  for(p = proc; p < &proc[NPROC]; p++)
+    if(p->state == SLEEPING && p->chan == chan){
+      p->state = RUNNABLE;
+      break;
+    }
+  release(&proc_table_lock);
+
+  return 0;
+}
+
 // Wake up all processes sleeping on chan.
 // Proc_table_lock must be held.
 static void
