@@ -146,6 +146,61 @@ copyproc(struct proc *p)
   return np;
 }
 
+// create a new thread
+struct proc*
+thread(struct proc *p, int stack, int routine, int args)
+{
+  int i;
+  struct proc *np;
+
+  // Allocate process.
+  if((np = allocproc()) == 0)
+    return 0;
+
+  // Allocate kernel stack.
+  if((np->kstack = kalloc(KSTACKSIZE)) == 0){
+    np->state = UNUSED;
+    return 0;
+  }
+  np->tf = (struct trapframe*)(np->kstack + KSTACKSIZE) - 1;
+
+  if(p){  // Copy process state from p.
+    np->parent = p;
+    memmove(np->tf, p->tf, sizeof(*np->tf));
+  
+    np->sz = p->sz;
+    np->mem = p->mem;
+    /*
+    if((np->mem = kalloc(np->sz)) == 0){
+      kfree(np->kstack, KSTACKSIZE);
+      np->kstack = 0;
+      np->state = UNUSED;
+      np->parent = 0;
+      return 0;
+    }
+    memmove(np->mem, p->mem, np->sz);
+    */
+
+    for(i = 0; i < NOFILE; i++)
+      if(p->ofile[i])
+        np->ofile[i] = filedup(p->ofile[i]);
+    np->cwd = idup(p->cwd);
+  }
+
+  // Set up new context to start executing at forkret (see below).
+  memset(&np->context, 0, sizeof(np->context));
+  np->context.eip = (uint)forkret;
+  np->context.esp = (uint)np->tf;
+  
+  np->tf->esp = (stack + 1024 - 12);
+  *(int *)(np->tf->esp + np->mem) = routine;
+  *(int *)(np->tf->esp + np->mem + 8) = args;
+  
+  // Clear %eax so that fork system call returns 0 in child.
+  np->tf->eax = 0;
+  return np;
+}
+
 // Set up first user process.
 void
 userinit(void)
@@ -418,6 +473,50 @@ wait(void)
         if(p->state == ZOMBIE){
           // Found one.
           kfree(p->mem, p->sz);
+          kfree(p->kstack, KSTACKSIZE);
+          pid = p->pid;
+          p->state = UNUSED;
+          p->pid = 0;
+          p->parent = 0;
+          p->name[0] = 0;
+          release(&proc_table_lock);
+          return pid;
+        }
+        havekids = 1;
+      }
+    }
+
+    // No point waiting if we don't have any children.
+    if(!havekids || cp->killed){
+      release(&proc_table_lock);
+      return -1;
+    }
+
+    // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+    sleep(cp, &proc_table_lock);
+  }
+}
+
+// Wait for a thread process to exit and return its pid.
+// Return -1 if this process has no children.
+int
+thread_wait(void)
+{
+  struct proc *p;
+  int i, havekids, pid;
+
+  acquire(&proc_table_lock);
+  for(;;){
+    // Scan through table looking for zombie child threads
+    havekids = 0;
+    for(i = 0; i < NPROC; i++){
+      p = &proc[i];
+      if(p->state == UNUSED)
+        continue;
+      if(p->parent == cp){
+        if(p->state == ZOMBIE){
+          // Found one.
+          //kfree(p->mem, p->sz);
           kfree(p->kstack, KSTACKSIZE);
           pid = p->pid;
           p->state = UNUSED;
