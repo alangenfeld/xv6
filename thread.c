@@ -18,7 +18,7 @@ void mutex_unlock(mutex_t *m)
 {
   m->flag = 0;
 } 
-
+/*
 void cond_init(cond_t *c)
 {
   c->chan = 0;
@@ -35,11 +35,10 @@ void cond_signal(cond_t *c)
 {
   cond_wake(&(c->chan));
 }
-
+*/
 int thread_create( void *(*start_routine)(void*), void *arg)
 {
   void *sp = malloc(1024);
   int pid = thread(sp);
-  if(!pid) (*start_routine)(arg);
-  else return pid;
+  return pid;
 }
