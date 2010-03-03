@@ -110,6 +110,7 @@ UPROGS=\
 	_zombie\
 	_test\
 	_ctest\
+	_ctest2\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
