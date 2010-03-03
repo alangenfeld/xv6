@@ -39,6 +39,6 @@ void cond_signal(cond_t *c)
 int thread_create( void *(*start_routine)(void*), void *arg)
 {
   void *sp = malloc(1024);
-  int pid = thread(sp);
+  int pid = thread(sp, (int)start_routine, (int)arg);
   return pid;
 }
