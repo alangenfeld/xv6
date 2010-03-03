@@ -19,3 +19,5 @@
 #define SYS_getpid 18
 #define SYS_sbrk   19
 #define SYS_sleep  20
+#define SYS_thread 21
+#define SYS_thread_wait 22

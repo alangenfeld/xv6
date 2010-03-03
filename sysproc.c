@@ -5,6 +5,33 @@
 #include "proc.h"
 
 int
+sys_thread(void)
+{
+  int pid;
+  int stack;
+  int routine;
+  int args;
+  struct proc *np;
+ 
+ if(argint(0, &stack) < 0 || argint(1, &routine) < 0 || argint(2, &args) < 0)
+    return -1;
+ 
+  if((np = thread(cp, (int)stack, (int)routine, (int)args)) == 0){
+    return -2;
+   }
+ 
+  np->state = RUNNABLE;
+  pid = np->pid;
+  return pid;
+}
+
+int sys_thread_wait(void)
+{
+  while(thread_wait() != -1);
+  return;
+}
+
+int
 sys_fork(void)
 {
   int pid;
