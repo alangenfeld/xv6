@@ -101,6 +101,7 @@ extern int sys_thread_wait(void);
 extern int sys_cond_wake(void);
 extern int sys_cond_sleep(void);
 extern int sys_tim(void);
+extern int sys_check(void);
 
 static int (*syscalls[])(void) = {
 [SYS_chdir]   sys_chdir,
@@ -128,6 +129,7 @@ static int (*syscalls[])(void) = {
 [SYS_cond_wake]   sys_cond_wake,
 [SYS_cond_sleep]  sys_cond_sleep,
 [SYS_tim]     sys_tim,
+[SYS_check]   sys_check,
 };
 
 void

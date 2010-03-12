@@ -125,3 +125,11 @@ filewrite(struct file *f, char *addr, int n)
   panic("filewrite");
 }
 
+int
+filecheck(struct file *f, int offset)
+{
+  if(f->type != FD_INODE)
+    return -1;
+
+  return  checki(f->ip, offset);
+}

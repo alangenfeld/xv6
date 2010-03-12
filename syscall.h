@@ -24,3 +24,4 @@
 #define SYS_cond_wake   23
 #define SYS_cond_sleep  24
 #define SYS_tim    25
+#define SYS_check 26

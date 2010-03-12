@@ -392,3 +392,15 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+int
+sys_check(void)
+{
+  struct file *f;
+  int offset;
+
+  argfd(0, 0, &f);
+  argint(1, &offset);
+
+  return filecheck(f, offset);
+}
