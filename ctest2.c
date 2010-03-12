@@ -54,7 +54,7 @@ void *consumer(void *arg) {
 int
 main(int argc, char*argv[])
 {
-  loops = 200;
+  loops = 20;
   MAX = 5;
   index = 0;
   mutex_init(&mutex);

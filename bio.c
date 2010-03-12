@@ -91,6 +91,38 @@ bget(uint dev, uint sector)
   panic("bget: no buffers");
 }
 
+// Look through buffer cache for sector on device dev.
+// If not found, allocate fresh block.
+// In either case, return locked buffer.
+int
+bcheck(uint dev, uint sector)
+{
+  struct buf *b;
+
+  //  acquire(&buf_table_lock);
+
+ loop:
+  // Try for cached block.
+  for(b = bufhead.next; b != &bufhead; b = b->next){
+    if((b->flags & (B_BUSY|B_VALID)) &&
+       b->dev == dev && b->sector == sector){
+      /*
+      if(b->flags & B_BUSY){
+        sleep(buf, &buf_table_lock);
+        goto loop;
+      }
+      //b->flags |= B_BUSY;
+      //release(&buf_table_lock);
+      */
+      return 1;
+    }
+  }
+
+  //release(&buf_table_lock);
+  return 0;
+  panic("bget: no buffers");
+}
+
 // Return a B_BUSY buf with the contents of the indicated disk sector.
 struct buf*
 bread(uint dev, uint sector)

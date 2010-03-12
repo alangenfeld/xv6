@@ -111,6 +111,7 @@ UPROGS=\
 	_test\
 	_ctest\
 	_ctest2\
+	_testbuf\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
