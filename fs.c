@@ -331,8 +331,8 @@ bmap(struct inode *ip, uint bn, int alloc)
   }
   bn -= NDIRECT;
 
-  if(bn < NINDIRECT){
-    // Load indirect block, allocating if necessary.
+  if(bn < (NINDIRECT * NINDIRECT)){
+    // Load double indirect block, allocating if necessary.
     if((addr = ip->addrs[INDIRECT]) == 0){
       if(!alloc)
         return -1;
@@ -340,13 +340,26 @@ bmap(struct inode *ip, uint bn, int alloc)
     }
     bp = bread(ip->dev, addr);
     a = (uint*)bp->data;
-  
-    if((addr = a[bn]) == 0){
+    
+    if((addr = a[(bn / NINDIRECT)]) == 0){
       if(!alloc){
         brelse(bp);
         return -1;
       }
-      a[bn] = addr = balloc(ip->dev);
+      a[(bn / NINDIRECT)] = addr = balloc(ip->dev);
+      bwrite(bp);
+    }
+    
+    // Load indirect block, allocating if necessary.
+    bp = bread(ip->dev, addr);
+    a = (uint*)bp->data;
+
+    if((addr = a[(bn % NINDIRECT)]) == 0){
+      if(!alloc){
+        brelse(bp);
+        return -1;
+      }
+      a[(bn % NINDIRECT)] = addr = balloc(ip->dev);
       bwrite(bp);
     }
     brelse(bp);
@@ -360,9 +373,9 @@ bmap(struct inode *ip, uint bn, int alloc)
 static void
 itrunc(struct inode *ip)
 {
-  int i, j;
-  struct buf *bp;
-  uint *a;
+  int i, j, k;
+  struct buf *bp, *bp2;
+  uint *a, *a2;
 
   for(i = 0; i < NDIRECT; i++){
     if(ip->addrs[i]){
@@ -374,9 +387,17 @@ itrunc(struct inode *ip)
   if(ip->addrs[INDIRECT]){
     bp = bread(ip->dev, ip->addrs[INDIRECT]);
     a = (uint*)bp->data;
+
     for(j = 0; j < NINDIRECT; j++){
-      if(a[j])
+      if(a[j]){
+	bp2 = bread(ip->dev, a[j]);
+	a2 = (uint*)bp2->data;
+	for(k = 0; k < NINDIRECT; k++){
+	  if(a2[k])
+	    bfree(ip->dev, a2[k]);
+	}
         bfree(ip->dev, a[j]);
+      }
     }
     brelse(bp);
     ip->addrs[INDIRECT] = 0;
