@@ -7,9 +7,9 @@
 #include "types.h"
 #include "fs.h"
 
-int nblocks = 7986;
-int ninodes = 1600;
-int size = 8192;
+int nblocks = 31956;
+int ninodes = 6400;
+int size = 32768;
 
 int fsfd;
 struct superblock sb;

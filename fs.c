@@ -330,7 +330,7 @@ bmap(struct inode *ip, uint bn, int alloc)
     return addr;
   }
   bn -= NDIRECT;
-
+  cprintf("%d\n", NINDIRECT);
   if(bn < (NINDIRECT * NINDIRECT)){
  
     // Load double indirect block, allocating if necessary.
