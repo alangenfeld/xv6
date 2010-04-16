@@ -14,10 +14,14 @@ main(int argc, char* argv[])
   for(i = 0; i < 128 * 128 + 12; i++) {
     buf[0] = i;
     write(fd, buf, sizeof(buf)); 
+    if(i%(128*16)==0) {
+      fstat(fd, &s);
+      printf(1, "size: %d\n", s.size);
+    }
   }
 
   fstat(fd, &s);
-  printf(1, "size: %d\n", s.size);
+  printf(1, "total size: %d\n", s.size);
   close(fd);
 
   fd = open("./ddix", O_CREATE | O_RDWR);
