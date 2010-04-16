@@ -6,6 +6,7 @@ OBJS = \
 	fs.o\
 	ide.o\
 	ioapic.o\
+	journal.o\
 	kalloc.o\
 	kbd.o\
 	lapic.o\

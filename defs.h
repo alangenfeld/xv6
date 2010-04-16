@@ -61,6 +61,11 @@ void            ioapic_enable(int irq, int cpu);
 extern uchar    ioapic_id;
 void            ioapic_init(void);
 
+//journal.c
+int             j_init();
+int             j_iupdate(struct inode *ip);
+int             j_writei();
+
 // kalloc.c
 char*           kalloc(int);
 void            kfree(char*, int);

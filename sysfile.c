@@ -235,7 +235,8 @@ create(char *path, int canexist, short type, short major, short minor)
   ip->major = major;
   ip->minor = minor;
   ip->nlink = 1;
-  iupdate(ip);
+
+  j_iupdate(ip);
   
   if(dirlink(dp, name, ip->inum) < 0){
     ip->nlink = 0;
@@ -246,7 +247,7 @@ create(char *path, int canexist, short type, short major, short minor)
 
   if(type == T_DIR){  // Create . and .. entries.
     dp->nlink++;  // for ".."
-    iupdate(dp);
+    iupdate(dp);  // journal FIXME
     // No ip->nlink++ for ".": avoid cyclic ref count.
     if(dirlink(ip, ".", ip->inum) < 0 || dirlink(ip, "..", dp->inum) < 0)
       panic("create dots");
