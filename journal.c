@@ -9,8 +9,14 @@
 #include "file.h"
 #include "fcntl.h"
 
+struct inode *jip;
+
 int j_init()
 {
+
+  jip = create("./journal", 1, T_FILE, 0, 0);
+
+  /* read journal */
 
   return 0;
 }
@@ -39,6 +45,29 @@ int j_iupdate(struct inode *ip)
 
 int j_writei()
 {
+  uint tot, m;
+  struct buf *jbuf;
 
-  return 0;
+  if(off + n < off)
+    return -1;
+  if(off + n > MAXFILE*BSIZE)
+    n = MAXFILE*BSIZE - off;
+
+  for(tot=0; tot<n; tot+=m, off+=m, src+=m){
+    // bp = bread(ip->dev, bmap(ip, off/BSIZE, 1));
+    m = min(n - tot, BSIZE - off%BSIZE);
+    /* heres the magic */    
+    
+
+    memmove(bp->data + off%BSIZE, src, m);
+    bwrite(bp);
+    brelse(bp);
+  }
+
+  if(n > 0 && off > ip->size){
+    ip->size = off;
+    iupdate(ip);
+  }
+  return n;
+
 }
