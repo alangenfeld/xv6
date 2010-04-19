@@ -33,6 +33,7 @@ int             filestat(struct file*, struct stat*);
 int             filewrite(struct file*, char*, int n);
 
 // fs.c
+uint            bmap(struct inode*, uint, int);
 int             dirlink(struct inode*, char*, uint);
 struct inode*   dirlookup(struct inode*, char*, uint*);
 struct inode*   ialloc(uint, short);
@@ -141,6 +142,9 @@ int             argstr(int, char**);
 int             fetchint(struct proc*, uint, int*);
 int             fetchstr(struct proc*, uint, char**);
 void            syscall(void);
+
+// sysfile.c
+struct inode*   create(char*, int, short, short, short);
 
 // timer.c
 void            timer_init(void);

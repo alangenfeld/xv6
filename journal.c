@@ -12,13 +12,24 @@
 struct t_block{
   uint status;
   uint num_sectors;
-  uint sectors[510];
+  uint sectors[120];
 }
 
 struct inode *jip;
 uint t_index;
 // uint sectors[16396 + 128 + 2];
 uint sectors[510];
+
+/* Game Plan:
+ * Make it so it writes in this order
+ * 1. Bit Mask
+ * 2. Inodes (indirect block)
+ * 3. Data Blocks
+ * after this, we will attempt logging these transacitons in
+ * this order
+ */
+
+
 
 int j_init()
 {
@@ -60,6 +71,16 @@ int j_writei(struct inode *ip, char *src, uint off, uint n)
   /* calculate the number of blocks you will touch */
 
 
+  /* AW FUCK:
+   * we should structure this in a way that we know
+   * what the final meta data state will be so we dont
+   * have to troll through the write one at a time
+   * penis
+   */
+
+
+
+
   if(off + n < off)
     return -1;
   if(off + n > MAXFILE*BSIZE)
@@ -70,8 +91,14 @@ int j_writei(struct inode *ip, char *src, uint off, uint n)
   for(tot=0; tot<n; tot+=m, off+=m, src+=m){
     /* init buffers */
     bp = bread(ip->dev, bmap(ip, off/BSIZE, 0));
-    if(bp == -1)
-      bp = jmap();
+    if(bp == -1) {
+     
+      /* mapping new data blocks this changes the inode 
+       * so we need to be sure to log them in this transaction
+       */
+      // bp = jmap(ip, off/BSIZE);
+
+    }
 
     jbuf = bread(jip->dev, bmap(jip, (t_index * BSIZE) + 1, 1)); 
     m = min(n - tot, BSIZE - off%BSIZE);
@@ -97,3 +124,17 @@ int j_writei(struct inode *ip, char *src, uint off, uint n)
   return n;
 
 }
+
+int jmap(struct inode *ip, uint bn)
+{
+  /* here we need to mirror bmap without changing the FS
+   * we need to take the metadata changes and write them to
+   * the journal.
+   * ISSUE: need to handle multiple calls to jmap changing
+   *        the same inode block
+   */
+
+  /* 
+    
+
+} 

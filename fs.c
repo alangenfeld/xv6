@@ -315,7 +315,7 @@ iupdate(struct inode *ip)
 
 // Return the disk block address of the nth block in inode ip.
 // If there is no such block, alloc controls whether one is allocated.
-static uint
+uint
 bmap(struct inode *ip, uint bn, int alloc)
 {
   uint addr, *a;
