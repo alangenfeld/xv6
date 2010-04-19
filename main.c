@@ -35,6 +35,8 @@ main(void)
     timer_init();  // uniprocessor timer
   userinit();      // first user process
   bootothers();    // start other processors
+  
+  j_init();     // set up journal
 
   // Finish setting up this processor in mpmain.
   mpmain();

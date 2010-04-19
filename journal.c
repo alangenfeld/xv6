@@ -13,7 +13,7 @@ struct t_block{
   uint status;
   uint num_sectors;
   uint sectors[120];
-}
+};
 
 struct inode *jip;
 uint t_index;
@@ -37,6 +37,7 @@ int j_init()
   jip = create("./journal", 1, T_FILE, 0, 0);
   t_index = 0;
   /* read journal */
+  cprintf("jip %x\n", jip);
 
   return 0;
 }
@@ -66,62 +67,9 @@ int j_iupdate(struct inode *ip)
 int j_writei(struct inode *ip, char *src, uint off, uint n)
 {
   uint tot, m, i;
-  struct buf *jbp, *bp, *jtp;
+  struct buf *bp;
   struct t_block;
-  /* calculate the number of blocks you will touch */
 
-
-  /* AW FUCK:
-   * we should structure this in a way that we know
-   * what the final meta data state will be so we dont
-   * have to troll through the write one at a time
-   * penis
-   */
-
-
-
-
-  if(off + n < off)
-    return -1;
-  if(off + n > MAXFILE*BSIZE)
-    n = MAXFILE*BSIZE - off;
-
-  jtp = bread(jip->dev, bmap(jip, 0, 1));
-
-  for(tot=0; tot<n; tot+=m, off+=m, src+=m){
-    /* init buffers */
-    bp = bread(ip->dev, bmap(ip, off/BSIZE, 0));
-    if(bp == -1) {
-     
-      /* mapping new data blocks this changes the inode 
-       * so we need to be sure to log them in this transaction
-       */
-      // bp = jmap(ip, off/BSIZE);
-
-    }
-
-    jbuf = bread(jip->dev, bmap(jip, (t_index * BSIZE) + 1, 1)); 
-    m = min(n - tot, BSIZE - off%BSIZE);
-
-    /* prepare block */
-    memmove(bp->data + off%BSIZE, src, m);
-    /* copy block to journal buffer */
-    memmove(jbp->data, bp->data, sizeof(data));
-    sectors[t_index++] = bp->sector;
-
-    /* write to journal */
-    bwrite(jbp);
-
-    /* release both blocks */
-    brelse(jbp);
-    brelse(bp);
-  }
-
-  if(n > 0 && off > ip->size){
-    ip->size = off;
-    iupdate(ip);
-  }
-  return n;
 
 }
 
@@ -134,7 +82,5 @@ int jmap(struct inode *ip, uint bn)
    *        the same inode block
    */
 
-  /* 
-    
-
+  return 0;
 } 

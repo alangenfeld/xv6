@@ -206,7 +206,7 @@ sys_unlink(void)
   return 0;
 }
 
-static struct inode*
+struct inode*
 create(char *path, int canexist, short type, short major, short minor)
 {
   uint off;
@@ -236,7 +236,7 @@ create(char *path, int canexist, short type, short major, short minor)
   ip->minor = minor;
   ip->nlink = 1;
 
-  j_iupdate(ip);
+  iupdate(ip);
   
   if(dirlink(dp, name, ip->inum) < 0){
     ip->nlink = 0;
