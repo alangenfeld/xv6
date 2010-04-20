@@ -117,8 +117,8 @@ UPROGS=\
 	_usertests\
 
 
-fs.img: mkfs README $(UPROGS)
-	./mkfs fs.img README $(UPROGS)
+fs.img: mkfs README journal $(UPROGS)
+	./mkfs fs.img README journal $(UPROGS)
 
 -include *.d
 
