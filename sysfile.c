@@ -397,11 +397,13 @@ sys_pipe(void)
 int
 sys_check(void)
 {
-  struct file *f;
+  /*struct file *f;
   int offset;
 
   argfd(0, 0, &f);
   argint(1, &offset);
 
   return filecheck(f, offset);
+  */
+  j_init();
 }
