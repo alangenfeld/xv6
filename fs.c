@@ -144,7 +144,7 @@ iinit(void)
 
 // Find the inode with number inum on device dev
 // and return the in-memory copy.
-static struct inode*
+struct inode*
 iget(uint dev, uint inum)
 {
   struct inode *ip, *empty;

@@ -11,21 +11,24 @@
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-struct inode *jip;
-uint t_index;
-
 struct buf *bp[20];
 uint b_index;
 
-int j_init()
+void
+j_init()
 {
+  struct inode *ip;
+  uchar buffer[512];
+  int i;
 
-  jip = create("./journal", 1, T_FILE, 0, 0);
-  t_index = 0;
-  /* read journal */
-  cprintf("jip %x\n", jip);
+  ip = iget(1, 3);
 
-  return 0;
+  if(ip->size < 512*20){ 
+    cprintf("alloc journal\n");
+    // allocate journal if too small
+    for(i=0;i<20;i++)
+      writei(ip, buffer, i*512, sizeof(buffer));
+  }
 }
 
 // Allocate a disk block.
@@ -214,7 +217,7 @@ j_writei(struct inode *ip, char *src, uint off, uint n)
     n = MAXFILE*BSIZE - off;
 
   /* REAL CODE STARTS HERE */
-
+  j_init();
   b_index = 0; // new xfer, start keeping track of open bufs
 
   /* allocate all space needed */
@@ -227,11 +230,10 @@ j_writei(struct inode *ip, char *src, uint off, uint n)
     bp[b_index] = bread(ip->dev, j_lookup(ip, off/BSIZE));
     m = min(n - tot, BSIZE - off%BSIZE);
     memmove(bp[b_index]->data + off%BSIZE, src, m);
-    //    bwrite(bp);
-    //    brelse(bp);
-
     b_index++;
   }
+
+  //  journal_start();
   
   for(i = 0; i < b_index; i++){
     bwrite(bp[i]);
@@ -243,5 +245,14 @@ j_writei(struct inode *ip, char *src, uint off, uint n)
     iupdate(ip);
   }
   return n;
+
+}
+
+
+static void
+journal_start()
+{
+  struct inode *ip;
+  uchar buffer[512];
 
 }
