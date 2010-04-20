@@ -14,6 +14,40 @@
 struct buf *bp[20];
 uint b_index;
 
+struct t_start_blk{
+  uint state;
+  uint sector[20];
+};
+
+#define START 0xDEADBEEF
+#define END 0x69696969
+
+static void
+journal_start()
+{
+  struct inode *ip;
+  int i;
+  struct t_start_blk start;
+  uchar buf[512];
+
+  ip = iget(1, 3);
+
+  start.state = START;
+  for(i=0;i<b_index;i++){
+    start.sector[i] = bp[i]->sector;
+  }
+  memmove(buf, &start, sizeof(start));
+  // write trans start blk 
+  writei(ip, buf, 0, sizeof(buf));
+  
+  // write data blks
+  for(i=0;i<b_index;i++){
+    writei(ip, bp[i]->data, i*512+512, sizeof(bp[i]->data));
+  }
+  iunlock(ip);
+
+}
+
 void
 j_init()
 {
@@ -29,6 +63,7 @@ j_init()
     for(i=0;i<20;i++)
       writei(ip, buffer, i*512, sizeof(buffer));
   }
+  iunlock(ip);
 }
 
 // Allocate a disk block.
@@ -217,7 +252,7 @@ j_writei(struct inode *ip, char *src, uint off, uint n)
     n = MAXFILE*BSIZE - off;
 
   /* REAL CODE STARTS HERE */
-  j_init();
+  //  j_init();
   b_index = 0; // new xfer, start keeping track of open bufs
 
   /* allocate all space needed */
@@ -233,7 +268,7 @@ j_writei(struct inode *ip, char *src, uint off, uint n)
     b_index++;
   }
 
-  //  journal_start();
+  journal_start();
   
   for(i = 0; i < b_index; i++){
     bwrite(bp[i]);
@@ -245,14 +280,5 @@ j_writei(struct inode *ip, char *src, uint off, uint n)
     iupdate(ip);
   }
   return n;
-
-}
-
-
-static void
-journal_start()
-{
-  struct inode *ip;
-  uchar buffer[512];
 
 }
