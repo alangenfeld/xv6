@@ -69,6 +69,7 @@ bget(uint dev, uint sector)
     if((b->flags & (B_BUSY|B_VALID)) &&
        b->dev == dev && b->sector == sector){
       if(b->flags & B_BUSY){
+
         sleep(buf, &buf_table_lock);
         goto loop;
       }

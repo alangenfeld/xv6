@@ -1,4 +1,5 @@
 // File system implementation.  Four layers:
+
 //   + Blocks: allocator for raw disk blocks.
 //   + Files: inode allocator, reading, writing, metadata.
 //   + Directories: inode with special contents (list of other inodes!)
@@ -26,7 +27,7 @@
 static void itrunc(struct inode*);
 
 // Read the super block.
-static void
+void
 readsb(int dev, struct superblock *sb)
 {
   struct buf *bp;
@@ -51,7 +52,7 @@ bzero(int dev, int bno)
 // Blocks. 
 
 // Allocate a disk block.
-static uint
+uint
 balloc(uint dev)
 {
   int b, bi, m;

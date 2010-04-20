@@ -36,7 +36,7 @@ main(void)
   userinit();      // first user process
   bootothers();    // start other processors
   
-  j_init();     // set up journal
+  //  j_init();     // set up journal
 
   // Finish setting up this processor in mpmain.
   mpmain();
