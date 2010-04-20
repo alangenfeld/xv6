@@ -31,7 +31,7 @@ journal_start()
   uchar buf[512];
 
   ip = iget(1, 3);
-
+  ilock(ip);
   start.state = START;
   for(i=0;i<b_index;i++){
     start.sector[i] = bp[i]->sector;
@@ -45,7 +45,6 @@ journal_start()
     writei(ip, bp[i]->data, i*512+512, sizeof(bp[i]->data));
   }
   iunlock(ip);
-
 }
 
 void
@@ -56,7 +55,7 @@ j_init()
   int i;
 
   ip = iget(1, 3);
-
+  ilock(ip);
   if(ip->size < 512*20){ 
     cprintf("alloc journal\n");
     // allocate journal if too small
