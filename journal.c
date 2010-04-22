@@ -25,6 +25,17 @@ struct t_start_blk{
 #define END 0x69696969
 
 static void
+printblk(uchar *p)
+{
+  int i;
+  
+  for(i=0;i<512;i++){
+    cprintf("%x", p[i]);
+    if(!((i+1)%32)) cprintf("\n");
+  }
+}
+
+static void
 journal_start()
 {
   struct inode *ip;
@@ -92,9 +103,8 @@ j_init()
     if(t_blk.state == READY){
       cprintf("```~~~~~~~~XxXx~~~RECOVERING!!!!!~~XxXx~~~~```\n");
       for(i = 0; i < t_blk.num_blks; i++){
-	readi(ip, buffer, i*512, sizeof(buffer));
+	readi(ip, buffer, i*512+512, sizeof(buffer));
 	bp = bread(1, t_blk.sector[i]);	
-	cprintf("recovering %d\n", t_blk.sector[i]);
 	memmove(bp->data, buffer, sizeof(buffer));
 	bwrite(bp);
 	brelse(bp);
@@ -279,11 +289,9 @@ j_iupdate(struct inode *ip)
 {
   //  struct buf *bp;
   struct dinode *dip;
-  cprintf("%d:iup %d\n", b_index, IBLOCK(ip->inum)); 
   bp[b_index] = bread(ip->dev, IBLOCK(ip->inum));
   dip = (struct dinode*)bp[b_index]->data + ip->inum%IPB;
   dip->type = ip->type;
-  cprintf("type %d\n", ip->type);
   dip->major = ip->major;
   dip->minor = ip->minor;
   dip->nlink = ip->nlink;
