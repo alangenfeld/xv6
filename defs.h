@@ -66,7 +66,6 @@ void            ioapic_init(void);
 
 //journal.c
 void             j_init();
-int             j_iupdate(struct inode *ip);
 int             j_writei();
 
 // kalloc.c

@@ -16,10 +16,12 @@ uint b_index;
 
 struct t_start_blk{
   uint state;
+  uint num_blks;
   uint sector[20];
 };
 
 #define START 0xDEADBEEF
+#define READY 0xB00B1E55
 #define END 0x69696969
 
 static void
@@ -28,22 +30,38 @@ journal_start()
   struct inode *ip;
   int i;
   struct t_start_blk start;
-  uchar buf[512];
+  uint state = READY;
 
   ip = iget(1, 3);
   ilock(ip);
   start.state = START;
+  start.num_blks = b_index;
   for(i=0;i<b_index;i++){
     start.sector[i] = bp[i]->sector;
   }
-  memmove(buf, &start, sizeof(start));
   // write trans start blk 
-  writei(ip, buf, 0, sizeof(buf));
+  writei(ip, &start, 0, sizeof(start));
   
   // write data blks
   for(i=0;i<b_index;i++){
-    writei(ip, bp[i]->data, i*512+512, sizeof(bp[i]->data));
+    writei(ip, bp[i]->data, (i*512) + 512, sizeof(bp[i]->data));
   }
+  
+  // journal valid
+  writei(ip, &state, 0, sizeof(state));
+  
+  iunlock(ip);
+}
+
+static void
+journal_end()
+{
+  uint state = END;
+  struct inode *ip;
+  ip = iget(1, 3);
+  ilock(ip);
+  // write trans start blk 
+  writei(ip, &state, 0, sizeof(state));
   iunlock(ip);
 }
 
@@ -52,16 +70,39 @@ j_init()
 {
   struct inode *ip;
   uchar buffer[512];
-  int i;
-
+  int i, j;
+  struct buf *bp;
+  struct t_start_blk t_blk;
+  
+  for(j=0;j<512;j++)
+    buffer[j] = 0;
+  
   ip = iget(1, 3);
   ilock(ip);
   if(ip->size < 512*20){ 
     cprintf("alloc journal\n");
     // allocate journal if too small
-    for(i=0;i<20;i++)
+    for(i=0;i<20;i++){
       writei(ip, buffer, i*512, sizeof(buffer));
+    }
   }
+  else {
+    readi(ip, &t_blk, 0, sizeof(t_blk));
+    // check if there is a valid not commited transaction
+    if(t_blk.state == READY){
+      cprintf("```~~~~~~~~XxXx~~~RECOVERING!!!!!~~XxXx~~~~```\n");
+      for(i = 0; i < t_blk.num_blks; i++){
+	readi(ip, buffer, i*512, sizeof(buffer));
+	bp = bread(1, t_blk.sector[i]);	
+	cprintf("recovering %d\n", t_blk.sector[i]);
+	memmove(bp->data, buffer, sizeof(buffer));
+	bwrite(bp);
+	brelse(bp);
+      }
+      writei(ip, buffer, 0, sizeof(buffer));
+    }
+  }
+  
   iunlock(ip);
 }
 
@@ -233,6 +274,26 @@ j_bmap(struct inode *ip, uint bn)
   panic("bmap: out of range");
 }
 
+void
+j_iupdate(struct inode *ip)
+{
+  //  struct buf *bp;
+  struct dinode *dip;
+  cprintf("%d:iup %d\n", b_index, IBLOCK(ip->inum)); 
+  bp[b_index] = bread(ip->dev, IBLOCK(ip->inum));
+  dip = (struct dinode*)bp[b_index]->data + ip->inum%IPB;
+  dip->type = ip->type;
+  cprintf("type %d\n", ip->type);
+  dip->major = ip->major;
+  dip->minor = ip->minor;
+  dip->nlink = ip->nlink;
+  dip->size = ip->size;
+  memmove(dip->addrs, ip->addrs, sizeof(ip->addrs));
+  //  bwrite(bp);
+  //brelse(bp);
+  b_index++;
+}
+
 int 
 j_writei(struct inode *ip, char *src, uint off, uint n)
 {
@@ -267,17 +328,20 @@ j_writei(struct inode *ip, char *src, uint off, uint n)
     b_index++;
   }
 
-  journal_start();
+  if(n > 0 && off > ip->size){
+    ip->size = off;
+    j_iupdate(ip);
+  }
   
+  journal_start();
+  panic("octomom");
   for(i = 0; i < b_index; i++){
     bwrite(bp[i]);
     brelse(bp[i]);
   }
   
-  if(n > 0 && off > ip->size){
-    ip->size = off;
-    iupdate(ip);
-  }
+  journal_end();
+  
   return n;
 
 }
