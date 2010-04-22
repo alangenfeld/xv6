@@ -101,15 +101,17 @@ j_init()
     readi(ip, &t_blk, 0, sizeof(t_blk));
     // check if there is a valid not commited transaction
     if(t_blk.state == READY){
-      cprintf("```~~~~~~~~XxXx~~~RECOVERING!!!!!~~XxXx~~~~```\n");
+      cprintf("~~~~~~~~~~RECOVERING!!!!!~~~~~~~~~~\n");
       for(i = 0; i < t_blk.num_blks; i++){
 	readi(ip, buffer, i*512+512, sizeof(buffer));
-	bp = bread(1, t_blk.sector[i]);	
+	bp = bread(1, t_blk.sector[i]);
+	cprintf("recovering sector %d\n", t_blk.sector[i]);
 	memmove(bp->data, buffer, sizeof(buffer));
 	bwrite(bp);
 	brelse(bp);
       }
       writei(ip, buffer, 0, sizeof(buffer));
+      cprintf("~~~~~RECOVERY COMPLETE~~~~~~~~\n");
     }
   }
   
@@ -352,4 +354,24 @@ j_writei(struct inode *ip, char *src, uint off, uint n)
   
   return n;
 
+}
+
+void
+start_trans_man_action()
+{
+  b_index = 0;
+}
+
+void
+end_trans_man_action()
+{
+  int i;
+  journal_start();
+  //  panic("octomom");
+  for(i = 0; i < b_index; i++){
+    bwrite(bp[i]);
+    brelse(bp[i]);
+  }
+  
+  journal_end();
 }
