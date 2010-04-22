@@ -114,6 +114,7 @@ UPROGS=\
 	_ctest2\
 	_testbuf\
 	_testfs\
+	_testj\
 	_usertests\
 
 
